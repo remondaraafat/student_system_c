@@ -4,7 +4,9 @@
 #include <string.h>
 #include<windows.h>
 #include <conio.h>
-
+//global variables
+int size=100;
+int numOfStu=0;
 //go to x y function
 COORD coord={0,0};                   // this is global variable set to top left 0,0
  void gotoxy(int x,int y)
@@ -80,8 +82,8 @@ char displayMenu(char menu[5][30], int* selected) {
     return pressed_key;
 }
 //load menu
-void loadMenu( Student* ptrStu,int *size,int *numOfStu){
-char menu1[5][30]={"Add new student","Search for student","Update Student","Statestics","Quit"};
+void loadMenu( Student* ptrStu){
+char menu1[5][30]={"Add new student","Search for student","Update Student","Statistics","Quit"};
     SetColor(3);
     int selected=0;
     char pressed_key;
@@ -106,23 +108,23 @@ char menu1[5][30]={"Add new student","Search for student","Update Student","Stat
     }
     //actions on menu item
     if(pressed_key=='\r' && selected==0){
-            AddStudent(ptrStu,size,&numOfStu);
+            AddStudent(ptrStu);
     }
     else if(pressed_key=='\r' && selected==1){
         int id;
         printf("Enenter id you searching on:");
         scanf("%d",&id);
-        searchDisplayStu(ptrStu,id,numOfStu);
+        searchDisplayStu(ptrStu,id);
         getchar();
     }
     else if(pressed_key=='\r' && selected==2){
         int id;
         printf("Enenter id you want to update:");
         scanf("%d",&id);
-        UpdateStu(ptrStu,id,numOfStu);
+        UpdateStu(ptrStu,id);
     }
     else if(pressed_key=='\r' && selected==3){
-        loadSubMenu(ptrStu,size,numOfStu);
+        loadSubMenu(ptrStu);
     }
     }
     while(pressed_key!='\r'||selected!=4);
@@ -156,30 +158,33 @@ char menu2[5][30]={"View passed students","View failed students","View average s
     }
     //actions on menu item
     if(pressed_key=='\r' && selected==0){
-        displayPassedStu(ptrStu,*numOfStu);
+        displayPassedStu(ptrStu);
     }
     else if(pressed_key=='\r' && selected==1){
-       // changNumOfStu(numOfStu);
-        //printf("%d",*numOfStu);
-        //getchar();
+       displayFailedStu(ptrStu);
+    }
+    else if(pressed_key=='\r' && selected==2){
+        displayAvgScore(ptrStu);
+    }
+    else if(pressed_key=='\r' && selected==3){
+        displayTopStu(ptrStu);
     }
     }
     while(pressed_key!='\r'||selected!=4);
 
 }
-
 //expand array
-void expandArray(Student** ptrStu, int* size, int incrementValue) {
-    int newSize = (*size + incrementValue) * 2;
-    Student* temp = (Student*)realloc(*ptrStu, newSize * sizeof(Student));
-    if (temp == NULL) {
-        printf("Failed to expand array memory!\n");
-        exit(1);
-    }
+//void expandArray(Student* ptrStu,int newMaxSize) {
+  //int newSize = newMaxSize * 2;
+    //Student* temp = (Student*)realloc(ptrStu, newSize * sizeof(Student));
+    //if (temp == NULL) {
+      //  printf("Failed to expand array memory!\n");
+        //return 1;
+    //}
 
-    *ptrStu = temp; // Update the original pointer
-    *size = newSize;
-}
+    //ptrStu = temp;
+    //size = newSize;
+//}
 //determine grade
 char determineGrade(int score) {
     if (score >= 90) {
@@ -195,7 +200,7 @@ char determineGrade(int score) {
     }
 }
 //get student by id
-Student* getStudentById(Student* ptrStu, int id, int numOfStu) {
+Student* getStudentById(Student* ptrStu, int id) {
     for (int j = 0; j < numOfStu; j++) {
         if (id == ptrStu[j].id) {
             return &ptrStu[j]; // Return pointer to the found student.
@@ -204,8 +209,8 @@ Student* getStudentById(Student* ptrStu, int id, int numOfStu) {
     return NULL; // Return NULL if not found.
 }
 //test
-void changNumOfStu(int* numOfStu){
-*numOfStu+=6;
+void changNumOfStu(){
+numOfStu+=6;
 }
 // Function to validate score
 int validateScore() {
@@ -219,30 +224,24 @@ int validateScore() {
     }
 }
 //add function
-void AddStudent( Student* ptrStu,int* size,int numOfStu){
-    int incrementValue;
+void AddStudent( Student* ptrStu){
+    int newMaxSize;
     printf("\n\nEnter num of Students you want to add:");
-    scanf("%d", &incrementValue);
-    incrementValue+=numOfStu;
-    if(numOfStu>*size){
-        expandArray(ptrStu,size,incrementValue);
-    }
-    for(int j=numOfStu;j<incrementValue;j++){
+    scanf("%d", &newMaxSize);
+    newMaxSize+=numOfStu;
+
+    for(int j=numOfStu;j<newMaxSize;j++){
         //id
         int tempId;
         printf("Enter Student %d id:",j+1);
         scanf("%d",&tempId);
-        printf("\n%d",tempId);
-        if(getStudentById(ptrStu,tempId,numOfStu)){
+        if(getStudentById(ptrStu,tempId)){
             printf("id already exist\n");
             j--;
             continue;
         }
-        printf("old num=%d\n",numOfStu);
-        numOfStu+=1;
-        (numOfStu)++;
-        printf("new num=%d\n",numOfStu);
-        numOfStu+=1;
+
+        numOfStu++;
         (ptrStu)[j].id=tempId;
         (ptrStu)[j].averageScore=0;
         (ptrStu)[j].grade='F';
@@ -301,22 +300,22 @@ void displayStudent(Student* student) {
     printf("Grade: %c\n", student->grade);
 }
 // search and display student
-void searchDisplayStu(Student* ptrStu, int id, int numOfStu){
+void searchDisplayStu(Student* ptrStu, int id){
     printf("Searching for student with ID: %d\n", id);
 
     // Use getStudentById to find the student
-    Student* student = getStudentById(ptrStu, id, numOfStu);
+    Student* student = getStudentById(ptrStu, id);
 
     // Use displayStudent to show the details
     displayStudent(student);
      getchar();
 }
 //Update Student
-void UpdateStu(Student* ptrStu, int id, int numOfStu){
+void UpdateStu(Student* ptrStu, int id){
     printf("Searching for student with ID: %d\n", id);
 
     // Use getStudentById to find the student
-    Student* student = getStudentById(ptrStu, id, numOfStu);
+    Student* student = getStudentById(ptrStu, id);
 
     // Use displayStudent to show the details
     displayStudent(student);
@@ -348,14 +347,13 @@ void UpdateStu(Student* ptrStu, int id, int numOfStu){
     student->grade = determineGrade(student->averageScore);
 }
 //View passed students
-void displayPassedStu(Student* ptrStu,int numOfStu){
+void displayPassedStu(Student* ptrStu){
     printf("\npassed students");
     bool passed=false;
 
 
-    for (int j = 0; j < 1; j++) {
+    for (int j = 0; j < numOfStu; j++) {
         // Debugging: Check if the student's name is properly initialized
-        printf("Debug: Student Name: %s, Grade: %c numner:%d\n", ptrStu[j].stuName, ptrStu[j].grade,numOfStu);
 
         if (ptrStu[j].grade != 'F') {
             printf("\n %s",ptrStu[j].stuName);
@@ -367,32 +365,64 @@ void displayPassedStu(Student* ptrStu,int numOfStu){
     }
     getch();
 }
+//view failed students
+void displayFailedStu(Student* ptrStu){
+    printf("\nFailed students");
+    bool passed=false;
+    for (int j = 0; j < numOfStu; j++) {
+        if (ptrStu[j].grade == 'F') {
+            printf("\n %s",ptrStu[j].stuName);
+            passed=true;
+        }
+    }
+    if(!passed){
+       printf("\n there is no failed students");
+    }
+    getch();
+}
+//view average
+void displayAvgScore(Student* ptrStu){
+    if(numOfStu==0){
+       printf("\n there is no students");
+    }
+    int sum=0;
+    for (int j = 0; j < numOfStu; j++) {
+       sum+=ptrStu[j].averageScore;
+    }
+    printf("\nAverage Score is: %d",sum/numOfStu);
+
+    getch();
+}
+//top performance
+void displayTopStu(Student* ptrStu){
+    if(numOfStu>0){
+    Student* topStu;
+    topStu=&ptrStu[0];
+    int sum=0;
+    for (int j = 1; j < numOfStu; j++) {
+       if(topStu->averageScore < ptrStu[j].averageScore){
+        topStu=&ptrStu[j];
+       }
+    }
+    printf("\nthe 1st top performance in the system is is: \n");
+    displayStudent(topStu);
+    }
+    else{
+         printf("\n there is no students");
+    }
+    getch();
+}
+
 int main()
 {
-    int size=20;
-    int numOfStu=0;
     Student *ptrStu = (Student *)malloc(size * sizeof(Student));
 
     if (ptrStu == NULL) {
         printf("Memory allocation failed for students!\n");
         return 1;
     }
-    loadMenu(&ptrStu,&size,&numOfStu);
+    loadMenu(&ptrStu);
     printf("\n");
     SetColor(2);
-
-
-
-   // AddStudent(ptrStu,&size,&numOfStu);
-    //printf("%d",numOfStu);
-    //int id=2;
-    //searchDisplayStu(ptrStu,id,&numOfStu);
-    //UpdateStu(ptrStu,id,&numOfStu);
-
-    //passed
-      //  ptrStu[j].passed = (ptrStu[j].grade != 'F');
-     // printf("Passed: %s\n", student->passed ? "Yes" : "No");
-        //printf("isPassed: %s\n", ptrStu[j].passed ? "yes" : "no");
-
     return 0;
 }
